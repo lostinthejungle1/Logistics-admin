@@ -1,10 +1,11 @@
 import axios from "axios";
 import { message } from "antd";
+import { closeLoading, showLoading } from "./loading";
 
 // Create an axios instance
 const instance = axios.create({
 	baseURL: "/api",
-	timeout: 8000, // request timeout
+	timeout: 5000, // request timeout
 	timeoutErrorMessage: "请求超时，请稍后重试",
 	withCredentials: true,
 });
@@ -12,6 +13,7 @@ const instance = axios.create({
 //create request interceptor - add auth token
 instance.interceptors.request.use(
 	(config) => {
+		showLoading();
 		const token = localStorage.getItem("token");
 		if (token) {
 			config.headers.Authorization = `Bearer ${token}`;
@@ -19,31 +21,40 @@ instance.interceptors.request.use(
 		}
 		return config;
 	},
-	(error) => Promise.reject(error)
+	(error) => Promise.reject(error.message)
 );
 
 //create response interceptor - handle response error
-instance.interceptors.response.use((response) => {
-	const data = response.data;
-	if (data.code === 50001) {
-		//not authorized
-		message.error(data.msg);
-		localStorage.removeItem("token");
-		location.href = "/#/login";
-	} else if (data.code !== 0) {
-		//api error, 0 means success, other code means error
-		message.error(data.msg);
-		// location.href = "/#/login";
-		return Promise.reject(data);
+instance.interceptors.response.use(
+	(response) => {
+		// console.log(response);
+		const data = response.data;
+		closeLoading();
+		if (data.code === 50001) {
+			//not authorized
+			message.error(data.msg);
+			localStorage.removeItem("token");
+			location.href = "/#/login";
+		} else if (data.code !== 0) {
+			//api error, 0 means success, other code means error
+			message.error(data.msg);
+			// location.href = "/#/login";
+			return Promise.reject(data.msg);
+		}
+		return data.data;
+	},
+	(error) => {
+		closeLoading();
+		message.error(error.message);
+		return Promise.reject(error.message);
 	}
-	return data.data;
-});
+);
 
 export default {
-	get(url: string, params: object) {
+	get<T>(url: string, params?: object): Promise<T> {
 		return instance.get(url, { params });
 	},
-	post(url: string, data: object) {
+	post<T>(url: string, data?: object): Promise<T> {
 		return instance.post(url, data);
 	},
 };
