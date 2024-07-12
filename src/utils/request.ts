@@ -2,6 +2,7 @@ import axios from "axios";
 import { message } from "antd";
 import { closeLoading, showLoading } from "./loading";
 import { Result } from "@/types/api";
+import storage from "./storage";
 
 // Create an axios instance
 const instance = axios.create({
@@ -15,7 +16,7 @@ const instance = axios.create({
 instance.interceptors.request.use(
 	(config) => {
 		showLoading();
-		const token = localStorage.getItem("token");
+		const token = storage.get("token");
 		config.headers.icode = "23B3904E1E8DE5DC";
 		if (token) {
 			config.headers.Authorization = `Bearer ${token}`;
@@ -37,7 +38,7 @@ instance.interceptors.response.use(
 		if (data.code === 50001) {
 			//not authorized
 			message.error(data.msg);
-			localStorage.removeItem("token");
+			storage.remove("token");
 			location.href = "/#/login";
 		} else if (data.code !== 0) {
 			//api error, 0 means success, other code means error
