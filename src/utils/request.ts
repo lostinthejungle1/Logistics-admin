@@ -1,11 +1,12 @@
 import axios from "axios";
 import { message } from "antd";
 import { closeLoading, showLoading } from "./loading";
+import { Result } from "@/types/api";
 
 // Create an axios instance
 const instance = axios.create({
-	baseURL: "/api",
-	timeout: 5000, // request timeout
+	baseURL: import.meta.env.VITE_BASE_URL,
+	timeout: 8000, // request timeout
 	timeoutErrorMessage: "请求超时，请稍后重试",
 	withCredentials: true,
 });
@@ -15,9 +16,12 @@ instance.interceptors.request.use(
 	(config) => {
 		showLoading();
 		const token = localStorage.getItem("token");
+		config.headers.icode = "23B3904E1E8DE5DC";
 		if (token) {
 			config.headers.Authorization = `Bearer ${token}`;
-			config.headers.icode = "23B3904E1E8DE5DC";
+		}
+		if (!import.meta.env.VITE_MOCK) {
+			config.baseURL = import.meta.env.VITE_MOCK_API;
 		}
 		return config;
 	},
@@ -28,7 +32,7 @@ instance.interceptors.request.use(
 instance.interceptors.response.use(
 	(response) => {
 		// console.log(response);
-		const data = response.data;
+		const data: Result = response.data;
 		closeLoading();
 		if (data.code === 50001) {
 			//not authorized
