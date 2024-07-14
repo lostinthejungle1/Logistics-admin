@@ -1,18 +1,31 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Layout, Watermark } from "antd";
 import { Outlet } from "react-router-dom";
 import NavHeader from "@/components/NavHeader";
 import NavFooter from "@/components/NavFooter";
 import SideMenu from "@/components/SideMenu";
 import styles from "./index.module.less";
+import api from "@/api";
+import { useBearStore } from "@/store";
 
 const { Content, Sider } = Layout;
 
-const layout: React.FC = () => {
+const PageLayout = () => {
+	const store = useBearStore();
+
+	useEffect(() => {
+		getUserInfo();
+	}, []);
+
+	const getUserInfo = async () => {
+		const data = await api.getUserInfo();
+		store.updateUserInfo(data);
+		// store.updateToken("test-token");
+	};
 	return (
 		<Watermark content="test">
 			<Layout>
-				<Sider>
+				<Sider collapsed={store.collapsed}>
 					<SideMenu />
 				</Sider>
 				<Layout>
@@ -29,4 +42,4 @@ const layout: React.FC = () => {
 	);
 };
 
-export default layout;
+export default PageLayout;
