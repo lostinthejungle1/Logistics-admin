@@ -1,0 +1,69 @@
+.userInfo {
+	display: flex;
+	align-items: center;
+	gap: 25px;
+}
+
+.userImg {
+	width: 80px;
+	height: 80px;
+	border-radius: 50%;
+}
+
+.cards {
+	display: flex;
+	color: #fff;
+	justify-content: space-between;
+}
+.card {
+	width: 23%;
+	height: 100px;
+	padding: 10px;
+	position: relative;
+	border-radius: 5px;
+	&:nth-child(1) {
+		background-color: #f4864f;
+	}
+	&:nth-child(2) {
+		background-color: #887edc;
+	}
+	&:nth-child(3) {
+		background-color: #4f95e5;
+	}
+	&:nth-child(4) {
+		background-color: #6dc3d7;
+	}
+
+	.data {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translateX(-50%) translateY(-50%);
+		font-size: 1.6em;
+	}
+}
+
+.charts {
+	margin-top: 50px;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.lineChart,
+.pieChartCity,
+.pieChartAge,
+.radarChart {
+	height: 400px;
+}
+
+.pieChart {
+	display: flex;
+	width: 100%;
+	align-items: center;
+}
+
+.pieChartCity,
+.pieChartAge {
+	width: 50%;
+}
