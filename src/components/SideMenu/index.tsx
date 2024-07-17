@@ -27,7 +27,7 @@ const SideMenu = () => {
 		},
 		{
 			key: "2",
-			label: "用户管理",
+			label: "系统管理",
 			icon: <UsergroupAddOutlined />,
 			children: [
 				{
