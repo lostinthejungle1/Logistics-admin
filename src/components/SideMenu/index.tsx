@@ -1,87 +1,85 @@
 import { Menu } from "antd";
-import {
-	DesktopOutlined,
-	UsergroupAddOutlined,
-	ShoppingCartOutlined,
-	ThunderboltOutlined,
-	UserOutlined,
-	MenuOutlined,
-	TrademarkCircleOutlined,
-	SendOutlined,
-	BarsOutlined,
-	DotChartOutlined,
-	PayCircleOutlined,
-} from "@ant-design/icons";
+import * as AntIcons from "@ant-design/icons";
+import { ThunderboltOutlined } from "@ant-design/icons";
 import styles from "./index.module.less";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useRouteLoaderData } from "react-router-dom";
 import { useBearStore } from "@/store";
+import type { MenuProps } from "antd";
+import { useEffect, useState } from "react";
+import React from "react";
+import { Menu as MenuType } from "@/types/api";
 
 const SideMenu = () => {
 	const navigate = useNavigate();
 	const collapsed = useBearStore((state) => state.collapsed);
-	const items = [
-		{
-			key: "1",
-			label: "工作台",
-			icon: <DesktopOutlined />,
-		},
-		{
-			key: "2",
-			label: "系统管理",
-			icon: <UsergroupAddOutlined />,
-			children: [
-				{
-					key: "2-1",
-					label: "用户列表",
-					icon: <UserOutlined />,
-				},
-				{
-					key: "2-2",
-					label: "菜单管理",
-					icon: <MenuOutlined />,
-				},
-				{
-					key: "2-3",
-					label: "角色管理",
-					icon: <TrademarkCircleOutlined />,
-				},
-				{
-					key: "2-4",
-					label: "部门管理",
-					icon: <SendOutlined />,
-				},
-			],
-		},
-		{
-			key: "3",
-			label: "订单管理",
-			icon: <ShoppingCartOutlined />,
-			children: [
-				{
-					key: "3-1",
-					label: "订单列表",
-					icon: <BarsOutlined />,
-				},
-				{
-					key: "3-2",
-					label: "订单聚合",
-					icon: <DotChartOutlined />,
-				},
-				{
-					key: "3-3",
-					label: "司机列表",
-					icon: <PayCircleOutlined />,
-				},
-			],
-		},
-	];
+	const [logoText, setLogoText] = useState("");
+	useEffect(() => {
+		setLogoText(collapsed ? "" : "A+Logistics");
+	}, [collapsed]);
+	const data = useRouteLoaderData("layout") as { menuList: MenuType.MenuItem[] };
+	type MenuItem = Required<MenuProps>["items"][number];
+	const [items, setItems] = useState<MenuItem[]>([]);
+	const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
+	const { pathname } = useLocation();
+	useEffect(() => {
+		if (data) {
+			const menuData = getMenuTree(data.menuList);
+			setItems(menuData);
+			setSelectedKeys([pathname]);
+		}
+	}, [data]);
+	const getItem = (label: React.ReactNode, key: React.Key, icon: React.ReactNode, children?: MenuItem[]): MenuItem => {
+		return {
+			label,
+			key,
+			icon,
+			children,
+		};
+	};
+	const getIcon = (name: string) => {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const icons: { [key: string]: any } = AntIcons;
+		const icon = icons[name];
+		if (icon) {
+			// console.log("icon", icon);
+			return React.createElement(icon);
+		}
+		return null;
+	};
+
+	const getMenuTree = (list: MenuType.MenuItem[], result: MenuItem[] = []): MenuItem[] => {
+		list.forEach((item, index) => {
+			if (item.menuType === 1 && item.menuState === 1) {
+				const icon = getIcon(item.icon || "");
+				if (item.buttons) {
+					result.push(getItem(item.menuName, item.path || index, icon));
+				} else {
+					const children = item.children ? getMenuTree(item.children) : undefined;
+					const menuItem = getItem(item.menuName, item._id, icon, children);
+					result.push(menuItem);
+				}
+			}
+		});
+		return result;
+	};
 	return (
 		<div>
 			<div className={styles.logo} onClick={() => navigate("/welcome")}>
 				<ThunderboltOutlined />
-				<div className={styles.logoText}>{collapsed ? "" : "A+ Logistics"}</div>
+				<div className={styles.logoText}>{logoText}</div>
 			</div>
-			<Menu theme="dark" mode="inline" defaultSelectedKeys={["1"]} items={items} />
+			<Menu
+				theme="dark"
+				mode="inline"
+				defaultSelectedKeys={["1"]}
+				items={items}
+				selectedKeys={selectedKeys}
+				onClick={({ key }) => {
+					// console.log("key", key);
+					setSelectedKeys([key]);
+					navigate(key);
+				}}
+			/>
 		</div>
 	);
 };
