@@ -1,10 +1,10 @@
 import storage from "@/utils/storage";
 import { LoadingOutlined, PlusOutlined } from "@ant-design/icons";
-import { Form, Input, Modal, Select, Upload, UploadProps } from "antd";
+import { Form, Input, Modal, Select, TreeSelect, Upload, UploadProps } from "antd";
 import { useState } from "react";
 import { message } from "@/utils/AntdGlobal";
 import { forwardRef, useImperativeHandle } from "react";
-import { User } from "@/types/api";
+import { Dept, Role, User } from "@/types/api";
 import api from "@/api";
 
 const CreateUser = forwardRef(({ update }: { update: () => void }, ref) => {
@@ -13,6 +13,8 @@ const CreateUser = forwardRef(({ update }: { update: () => void }, ref) => {
 	const [form] = Form.useForm();
 	const [avatar, setAvatar] = useState<string | null>(null);
 	const [avatarLoading, setAvatarLoading] = useState<boolean>(false);
+	const [depts, setDepts] = useState<Dept.DeptItem[]>([]);
+	const [roles, setRoles] = useState<Role.RoleItem[]>([]);
 
 	useImperativeHandle(ref, () => {
 		return {
@@ -27,6 +29,13 @@ const CreateUser = forwardRef(({ update }: { update: () => void }, ref) => {
 			form.setFieldsValue(data);
 			setAvatar(data.userImg);
 		}
+		api.getDeptList().then((res) => {
+			setDepts(res);
+		});
+
+		api.getAllRoles().then((res) => {
+			setRoles(res);
+		});
 	};
 	const handleSubmit = async () => {
 		try {
@@ -148,8 +157,16 @@ const CreateUser = forwardRef(({ update }: { update: () => void }, ref) => {
 					>
 						<Input type="number" placeholder="请输入手机号" />
 					</Form.Item>
-					<Form.Item label="部门" name="deptId" rules={[{ required: true, message: "请输入用户名称" }]}>
-						<Input placeholder="请输入部门" />
+					<Form.Item label="部门" name="deptId" rules={[{ required: true, message: "请选择部门" }]}>
+						{/* <Input placeholder="请输入部门" /> */}
+						<TreeSelect
+							treeData={depts}
+							allowClear
+							treeDefaultExpandAll
+							fieldNames={{ value: "_id", label: "deptName" }}
+							showCheckedStrategy={TreeSelect.SHOW_ALL}
+							placeholder="请选择部门"
+						/>
 					</Form.Item>
 					<Form.Item label="岗位" name="job">
 						<Input placeholder="岗位" />
@@ -163,8 +180,15 @@ const CreateUser = forwardRef(({ update }: { update: () => void }, ref) => {
 							]}
 						/>
 					</Form.Item>
-					<Form.Item label="角色" name="role">
-						<Input placeholder="角色" />
+					<Form.Item label="角色" name="roleList" rules={[{ required: true, message: "请选择角色" }]}>
+						{/* <Input placeholder="角色" /> */}
+						<Select placeholder="请选择角色">
+							{roles.map((item) => (
+								<Select.Option key={item._id} value={item._id}>
+									{item.roleName}
+								</Select.Option>
+							))}
+						</Select>
 					</Form.Item>
 					<Form.Item label="头像">
 						<Upload
