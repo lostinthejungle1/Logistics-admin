@@ -1,12 +1,13 @@
 import React, { useEffect } from "react";
 import { Layout, Watermark } from "antd";
-import { Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation, useRouteLoaderData } from "react-router-dom";
 import NavHeader from "@/components/NavHeader";
 import NavFooter from "@/components/NavFooter";
 import SideMenu from "@/components/SideMenu";
 import styles from "./index.module.less";
 import api from "@/api";
 import { useBearStore } from "@/store";
+import { IAuthLoader } from "@/router/AuthLoader";
 
 const { Content, Sider } = Layout;
 
@@ -16,6 +17,11 @@ const PageLayout = () => {
 	useEffect(() => {
 		getUserInfo();
 	}, []);
+	const { pathname } = useLocation();
+	const data = useRouteLoaderData("layout") as IAuthLoader;
+	if (data.menuPathList.indexOf(pathname) === -1 && ["/welcome"].indexOf(pathname) === -1) {
+		return <Navigate to="/403" />;
+	}
 
 	const getUserInfo = async () => {
 		const data = await api.getUserInfo();
